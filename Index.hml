@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gira Fácil</title>
+<style>
+body{font-family:Arial;margin:0;background:#f3f6f4;color:#173c2d}
+header{background:#286c48;color:white;padding:24px;text-align:center}
+main{padding:18px;max-width:700px;margin:auto}
+.card{background:white;border-radius:22px;padding:20px;margin:15px 0;box-shadow:0 2px 8px #ddd}
+button{background:#2e724d;color:white;border:0;border-radius:15px;padding:14px 18px;font-size:18px;font-weight:bold}
+input,textarea{width:100%;box-sizing:border-box;padding:12px;margin:7px 0;border:1px solid #ccc;border-radius:10px;font-size:17px}
+.check{display:flex;gap:12px;align-items:center;margin:15px 0;font-size:18px}
+.check input{width:25px;height:25px}
+.saved{color:#287348;font-weight:bold}
+</style>
+</head>
+
+<body>
+<header>
+<h1>🏆 Gira Fácil</h1>
+<div>Gestión de giras deportivas</div>
+</header>
+
+<main>
+<button onclick="inicio()">🏠 Giras</button>
+
+<div id="app"></div>
+</main>
+
+<script>
+const base=[
+{id:"tandil27",anio:2027,nombre:"Tandil",fecha:"Agosto 2027",division:"2015/2016",lugar:"Tandil",transporte:"Micro",hotel:"A definir",chicos:45,profes:7},
+{id:"brasil27",anio:2027,nombre:"Brasil"},
+{id:"espana27",anio:2027,nombre:"España"},
+{id:"uruguay27",anio:2027,nombre:"Uruguay"},
+{id:"mdp27",anio:2027,nombre:"Mar del Plata"},
+{id:"pretemp26",anio:2026,nombre:"Pretemporada fútbol masculino",fecha:"27, 28 y 1 de marzo",lugar:"Balcarce",division:"Primera División y Reserva"},
+{id:"ganafote26",anio:2026,nombre:"Gañafote Cup",fecha:"24 al 30 de marzo",lugar:"Huelva, España",division:"2014 selectivo"},
+{id:"fem26",anio:2026,nombre:"Pretemporada fútbol femenino",fecha:"Abril",lugar:"Tandil — Predio Habras",division:"Primera División"},
+{id:"brasil26",anio:2026,nombre:"Santa Catarina Cup",fecha:"10 al 19 de julio",lugar:"Camboriú, Brasil",division:"5ª División (2010/11)"},
+{id:"serranita26",anio:2026,nombre:"Serranita Cup",fecha:"28, 29 y 30 de agosto",lugar:"Tandil",division:"7ª División (2014/15)"},
+{id:"junior26",anio:2026,nombre:"Junior Cup",fecha:"Octubre",lugar:"Punta del Este, Uruguay",division:"6ª División (2012/13)"},
+{id:"open26",anio:2026,nombre:"Open Sport",fecha:"Noviembre",lugar:"Mar del Plata",division:"8ª/9ª masc + 7ª/8ª fem"},
+{id:"diablo26",anio:2026,nombre:"Diablo Nacional",fecha:"Noviembre",lugar:"Mar del Plata",division:"5ª/6ª femenino"}
+];
+
+let giras=JSON.parse(localStorage.getItem("girasFacil"))||base;
+
+function guardar(){
+localStorage.setItem("girasFacil",JSON.stringify(giras));
+document.getElementById("estado").innerHTML="✅ Cambios guardados";
+}
+
+function inicio(){
+let html="<h2>Calendario de Giras</h2>";
+[2027,2026].forEach(a=>{
+html+=`<h2>${a}</h2>`;
+giras.filter(g=>g.anio==a).forEach(g=>{
+html+=`<div class="card" onclick="editar('${g.id}')">
+<h2>${g.nombre}</h2>
+<p>${g.fecha||""}</p>
+<p>${g.lugar||""}</p>
+<p>${g.division||""}</p>
+<button>Abrir gira</button>
+</div>`;
+});
+});
+document.getElementById("app").innerHTML=html;
+}
+
+function editar(id){
+let g=giras.find(x=>x.id==id);
+let checklist=["Heladera","Sombrillas","Pelotas","Inflador / material deportivo","Documentación","Botiquín","Confirmar micro","Confirmar hotel","Seguro","Pago del torneo"];
+
+document.getElementById("app").innerHTML=`
+<div class="card">
+<h1>${g.nombre} ${g.anio}</h1>
+
+<label>Fecha</label>
+<input id="fecha" value="${g.fecha||""}">
+
+<label>División</label>
+<input id="division" value="${g.division||""}">
+
+<label>Lugar</label>
+<input id="lugar" value="${g.lugar||""}">
+
+<label>Transporte</label>
+<input id="transporte" value="${g.transporte||""}">
+
+<label>Hotel</label>
+<input id="hotel" value="${g.hotel||""}">
+
+<label>Chicos</label>
+<input id="chicos" type="number" value="${g.chicos||""}">
+
+<label>Profes</label>
+<input id="profes" type="number" value="${g.profes||""}">
+
+<h2>✅ Checklist</h2>
+${checklist.map((x,i)=>`<div class="check"><input type="checkbox" id="c${i}" ${g["c"+i]?"checked":""}>${x}</div>`).join("")}
+
+<h2>💰 Presupuesto</h2>
+${["Micro","Torneo","Seguro","Sueldo profes","Gastos extras"].map((x,i)=>`${x}<input type="number" id="p${i}" value="${g["p"+i]||""}">`).join("")}
+
+<h2>📝 Observaciones</h2>
+<textarea id="obs" rows="5">${g.obs||""}</textarea>
+
+<h2>💡 Aprendizajes</h2>
+<textarea id="apr" rows="5">${g.apr||""}</textarea>
+
+<button onclick="guardarGira('${id}')">💾 GUARDAR CAMBIOS</button>
+<p id="estado" class="saved"></p>
+</div>`;
+}
+
+function guardarGira(id){
+let g=giras.find(x=>x.id==id);
+
+["fecha","division","lugar","transporte","hotel","chicos","profes"].forEach(x=>{
+g[x]=document.getElementById(x).value;
+});
+
+for(let i=0;i<10;i++)
+g["c"+i]=document.getElementById("c"+i).checked;
+
+for(let i=0;i<5;i++)
+g["p"+i]=document.getElementById("p"+i).value;
+
+g.obs=document.getElementById("obs").value;
+g.apr=document.getElementById("apr").value;
+
+guardar();
+}
+
+inicio();
+</script>
+</body>
+</html>
